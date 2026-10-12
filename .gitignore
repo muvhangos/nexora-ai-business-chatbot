@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+instance/
+.pytest_cache/
+.DS_Store
+
+# Private customer records
+customer_enquiries*.csv
+# Local backups
+*.backup
+*.before-*
+*.repair-backup
+*.admin-backup
+
+# Keep local backups out of Git
+*.step5-backup
