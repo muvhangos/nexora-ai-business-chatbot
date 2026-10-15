@@ -4,33 +4,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Nexora Business Solutions AI chatbot, customer enquiries and quotation requests.">
+
+    <meta
+        name="description"
+        content="Nexora Business Solutions AI chatbot, customer enquiries and quotation requests."
+    >
+
+    <meta name="theme-color" content="#100d24">
+
     <title>Nexora Business Solutions | AI Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
 </head>
+
 <body>
     <main class="app-shell">
+
+        <!-- Business header -->
         <header class="header">
-            <div class="brand-icon">🤖</div>
-            <div>
-                <h1>Nexora Business Solutions</h1>
-                <p><span class="status-dot"></span> Business assistant</p>
+            <div class="brand">
+                <div class="brand-icon">
+                    <img
+                        src="{{ url_for('static', filename='nexora-logo.jpg') }}"
+                        alt="Nexora Business Solutions logo"
+                        class="brand-logo"
+                    >
+                </div>
+
+                <div class="brand-text">
+                    <h1>Nexora Business Solutions</h1>
+                    <p>
+                        <span
+                            class="status-dot"
+                            aria-hidden="true"
+                        ></span>
+                        Business assistant
+                    </p>
+                </div>
             </div>
-            <button id="clear-chat" class="clear-button" type="button">
+
+            <button
+                id="clear-chat"
+                class="clear-button"
+                type="button"
+            >
                 Clear
             </button>
         </header>
 
+        <!-- Welcome section -->
         <section class="welcome">
             <span class="eyebrow">YOUR DIGITAL ASSISTANT</span>
+
             <h2>How can we help you today?</h2>
-            <p>Ask about our services, business hours, or request a quotation.</p>
+
+            <p>
+                Ask about our services, business hours,
+                or request a quotation.
+            </p>
         </section>
 
-        <section id="chat-messages" class="messages"
-                 aria-label="Chat messages" aria-live="polite">
+        <!-- Chat conversation -->
+        <section
+            id="chat-messages"
+            class="messages"
+            aria-label="Chat messages"
+            aria-live="polite"
+            aria-relevant="additions text"
+        >
             <article class="message bot">
-                <div class="avatar">🤖</div>
+                <div class="avatar" aria-hidden="true">🤖</div>
+
                 <div class="bubble">
                     Hello! Welcome to Nexora Business Solutions.
                     What can I help you with today?
@@ -38,89 +85,236 @@
             </article>
         </section>
 
-        <section class="suggestions" aria-label="Suggested questions">
-            <button type="button" data-question="What services do you offer?">
+        <!-- Suggested questions -->
+        <section
+            class="suggestions"
+            aria-label="Suggested questions"
+        >
+            <button
+                type="button"
+                data-question="What services do you offer?"
+            >
                 Our services
             </button>
-            <button type="button" data-question="What are your business hours?">
+
+            <button
+                type="button"
+                data-question="What are your business hours?"
+            >
                 Business hours
             </button>
-            <button type="button" data-question="How can I request a quote?">
+
+            <button
+                type="button"
+                data-question="How can I request a quote?"
+            >
                 Request a quote
             </button>
         </section>
 
+        <!-- Chat input -->
         <form id="chat-form" class="chat-form">
-            <label class="sr-only" for="message-input">Your message</label>
-            <input id="message-input" name="message"
-                   placeholder="Type your message..." maxlength="3000"
-                   autocomplete="off" required>
-            <button id="send-button" type="submit" aria-label="Send message">
+            <label
+                class="sr-only"
+                for="message-input"
+            >
+                Your message
+            </label>
+
+            <input
+                id="message-input"
+                name="message"
+                type="text"
+                placeholder="Type your message..."
+                maxlength="3000"
+                autocomplete="off"
+                required
+            >
+
+            <button
+                id="send-button"
+                type="submit"
+                aria-label="Send message"
+            >
                 Send ↗
             </button>
         </form>
 
-        <section class="enquiry-section" aria-labelledby="enquiry-heading">
-            <h2 id="enquiry-heading">Customer Enquiries &amp; Quotations</h2>
-            <p>Tell us what your business needs. Our team can review your request and prepare a quotation.</p>
+        <!-- Customer enquiry and quotation form -->
+        <section
+            class="enquiry-section"
+            aria-labelledby="enquiry-heading"
+        >
+            <h2 id="enquiry-heading">
+                Customer Enquiries &amp; Quotations
+            </h2>
 
-            <button id="toggle-enquiry" class="clear-button"
-                    type="button" aria-expanded="false"
-                    aria-controls="enquiry-panel">
+            <p>
+                Tell us what your business needs. Our team can
+                review your request and prepare a quotation.
+            </p>
+
+            <button
+                id="toggle-enquiry"
+                class="clear-button"
+                type="button"
+                aria-expanded="false"
+                aria-controls="enquiry-panel"
+            >
                 Open Enquiry Form
             </button>
 
             <div id="enquiry-panel" hidden>
                 <form id="enquiry-form">
-                    <label for="customer-name">Full name *</label>
-                    <input id="customer-name" name="name"
-                           type="text" maxlength="100"
-                           autocomplete="name" required>
 
-                    <label for="customer-email">Email address *</label>
-                    <input id="customer-email" name="email"
-                           type="email" maxlength="254"
-                           autocomplete="email" required>
+                    <!-- Customer name -->
+                    <label for="customer-name">
+                        Full name *
+                    </label>
 
-                    <label for="customer-phone">Phone number</label>
-                    <input id="customer-phone" name="phone"
-                           type="tel" maxlength="30"
-                           autocomplete="tel"
-                           placeholder="+27 ...">
+                    <input
+                        id="customer-name"
+                        name="name"
+                        type="text"
+                        maxlength="100"
+                        autocomplete="name"
+                        required
+                    >
 
-                    <label for="service-required">Service required *</label>
-                    <select id="service-required" name="service" required>
+                    <!-- Customer email -->
+                    <label for="customer-email">
+                        Email address *
+                    </label>
+
+                    <input
+                        id="customer-email"
+                        name="email"
+                        type="email"
+                        maxlength="254"
+                        autocomplete="email"
+                        required
+                    >
+
+                    <!-- Customer phone -->
+                    <label for="customer-phone">
+                        Phone number
+                    </label>
+
+                    <input
+                        id="customer-phone"
+                        name="phone"
+                        type="tel"
+                        maxlength="30"
+                        autocomplete="tel"
+                        placeholder="+27 ..."
+                    >
+
+                    <!-- Requested service -->
+                    <label for="service-required">
+                        Service required *
+                    </label>
+
+                    <select
+                        id="service-required"
+                        name="service"
+                        required
+                    >
                         <option value="">Choose a service</option>
-                        <option value="Web development">Web development</option>
-                        <option value="IT support">IT support</option>
-                        <option value="Business automation">Business automation</option>
-                        <option value="AI chatbot integration">AI chatbot integration</option>
-                        <option value="Website maintenance">Website maintenance</option>
-                        <option value="Other">Other</option>
+
+                        <option value="Web development">
+                            Web development
+                        </option>
+
+                        <option value="IT support">
+                            IT support
+                        </option>
+
+                        <option value="Business automation">
+                            Business automation
+                        </option>
+
+                        <option value="AI chatbot integration">
+                            AI chatbot integration
+                        </option>
+
+                        <option value="Website maintenance">
+                            Website maintenance
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
                     </select>
 
-                    <label for="project-details">Describe your requirements *</label>
-                    <textarea id="project-details" name="details"
-                              rows="5" maxlength="3000"
-                              placeholder="Tell us about your project, requirements and expected outcome..."
-                              required></textarea>
+                    <!-- Project requirements -->
+                    <label for="project-details">
+                        Describe your requirements *
+                    </label>
 
-                    <button id="submit-enquiry" type="submit">
+                    <textarea
+                        id="project-details"
+                        name="details"
+                        rows="5"
+                        maxlength="3000"
+                        placeholder="Tell us about your project, requirements and expected outcome..."
+                        required
+                    ></textarea>
+
+                    <!-- Optional file attachments -->
+                    <label for="enquiry-attachments">
+                        Attach supporting files (optional)
+                    </label>
+
+                    <input
+                        id="enquiry-attachments"
+                        name="attachments"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.docx"
+                        multiple
+                    >
+
+                    <small>
+                        Accepted file types: PDF, JPG, PNG and DOCX.
+                        The server will enforce file size and upload
+                        limits.
+                    </small>
+
+                    <!-- Submit enquiry -->
+                    <button
+                        id="submit-enquiry"
+                        type="submit"
+                    >
                         Submit Enquiry / Request Quote
                     </button>
 
-                    <p id="enquiry-status" role="status"
-                       aria-live="polite"></p>
+                    <!-- Submission feedback -->
+                    <p
+                        id="enquiry-status"
+                        role="status"
+                        aria-live="polite"
+                    ></p>
+
                 </form>
             </div>
         </section>
 
+        <!-- Footer -->
         <footer>
-            Nexora Business Solutions · Built with Python and Flask
-            <p id="mode-label">Connecting to assistant...</p>
+            <p>
+                Nexora Business Solutions · Built with Python and Flask
+            </p>
+
+            <p id="mode-label">
+                Connecting to assistant...
+            </p>
         </footer>
+
     </main>
 
-    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    <!-- Chatbot JavaScript -->
+    <script
+        src="{{ url_for('static', filename='script.js') }}"
+        defer
+    ></script>
 </body>
 </html>

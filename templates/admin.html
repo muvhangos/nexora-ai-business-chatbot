@@ -635,6 +635,95 @@
             });
 
             filterRows();
+            
+            // Prepare chart data from the enquiries rendered by Flask.
+            const statusCounts = {
+                Pending: 0,
+                Quoted: 0,
+                Approved: 0
+            };
+
+            const serviceCounts = {};
+
+            rows.forEach((row) => {
+                const status = row.dataset.status || "Pending";
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+                const serviceCell = row.cells[1];
+                const service = serviceCell
+                    ? serviceCell.textContent.trim()
+                    : "Other";
+
+                if (service) {
+                    serviceCounts[service] =
+                        (serviceCounts[service] || 0) + 1;
+                }
+            });
+
+            if (typeof Chart !== "undefined") {
+                new Chart(document.getElementById("statusChart"), {
+                    type: "doughnut",
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            data: Object.values(statusCounts),
+                            backgroundColor: [
+                                "#fbbf24",
+                                "#a78bfa",
+                                "#4ade80"
+                            ],
+                            borderColor: "#080d1b",
+                            borderWidth: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: "bottom",
+                                labels: { color: "#edf4ff" }
+                            }
+                        }
+                    }
+                });
+
+                new Chart(document.getElementById("serviceChart"), {
+                    type: "bar",
+                    data: {
+                        labels: Object.keys(serviceCounts),
+                        datasets: [{
+                            label: "Enquiries",
+                            data: Object.values(serviceCounts),
+                            backgroundColor: "#56e5ff",
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        indexAxis: "y",
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: "#a6b4ce",
+                                    precision: 0
+                                },
+                                grid: { color: "rgba(148,163,184,0.15)" }
+                            },
+                            y: {
+                                ticks: { color: "#edf4ff" },
+                                grid: { display: false }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
         })();
     </script>
 </body>

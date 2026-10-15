@@ -34,7 +34,7 @@ app.config.update(
 )
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "")
-ADMIN_PASSWORD_HASH = os.getenv("scrypt:32768:8:1$LNlZAJ9JiGoxtK6s$1de78b929dc166e2ab176d6ae480de08afc972c8096f4cb35cf08ffb3477c3a245bafa51de67e7b8191ad3d5d1b988c2f5b6b812deb0043faf5c606926e48edf", "")
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", "")
 
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key) if api_key else None
@@ -74,7 +74,7 @@ Currency: South African Rand (ZAR).
 
 Email: info@example.com.
 Phone: +27 00 000 0000.
-
+"""
 
 SYSTEM_PROMPT = f"""
 You are a helpful, professional AI business assistant.
