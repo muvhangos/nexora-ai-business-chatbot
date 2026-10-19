@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080d1b">
-    <title>Enquiry Dashboard | Nexora Business Solutions</title>
+    <title>Nexora | Leads Dashboard</title>
 
     <style>
         :root {
             color-scheme: dark;
             --bg: #080d1b;
-            --panel: rgba(18, 29, 53, 0.88);
-            --border: rgba(148, 163, 184, 0.2);
+            --panel: rgba(18, 29, 53, 0.92);
+            --border: rgba(148, 163, 184, 0.22);
             --text: #edf4ff;
             --muted: #a6b4ce;
             --cyan: #56e5ff;
@@ -24,6 +24,11 @@
 
         * {
             box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 24px;
         }
 
         body {
@@ -56,7 +61,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
             flex-wrap: wrap;
             margin-bottom: 26px;
         }
@@ -80,26 +85,40 @@
             line-height: 1.6;
         }
 
-        .admin-link,
-        .action-link {
-            display: inline-flex;
+        /* Always-visible dashboard navigation */
+        .admin-navigation {
+            display: flex !important;
+            flex-wrap: wrap;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-height: 42px;
-            padding: 10px 16px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
-            background: rgba(255, 255, 255, 0.04);
-            font-weight: 700;
-            white-space: nowrap;
+            gap: 12px;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
-        .admin-link:hover,
-        .action-link:hover {
-            border-color: var(--cyan);
+        .admin-link {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 12px 20px;
+            border: 1px solid var(--cyan);
+            border-radius: 12px;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #ffffff !important;
+            font-size: 0.95rem;
+            font-weight: 800;
+            white-space: nowrap;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 0 18px rgba(124, 58, 237, 0.3);
+        }
+
+        .admin-link:hover {
+            transform: translateY(-2px);
             text-decoration: none;
+            box-shadow: 0 0 24px rgba(86, 229, 255, 0.3);
         }
 
         .admin-stats {
@@ -132,16 +151,13 @@
             font-weight: 800;
         }
 
-        .pending-number {
-            color: var(--orange);
-        }
+        .pending-number { color: var(--orange); }
+        .quoted-number { color: var(--purple); }
+        .approved-number { color: var(--green); }
 
-        .quoted-number {
-            color: var(--purple);
-        }
-
-        .approved-number {
-            color: var(--green);
+        .admin-panel {
+            margin-bottom: 24px;
+            scroll-margin-top: 20px;
         }
 
         .admin-panel h2 {
@@ -153,6 +169,31 @@
             margin: 0 0 20px;
             color: var(--muted);
             line-height: 1.6;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .chart-card {
+            min-width: 0;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: rgba(8, 13, 27, 0.55);
+        }
+
+        .chart-card h3 {
+            margin: 0 0 16px;
+            font-size: 1rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 260px;
+            width: 100%;
         }
 
         .toolbar {
@@ -229,6 +270,11 @@
             background: rgba(255, 255, 255, 0.025);
         }
 
+        tr[hidden],
+        .empty-state[hidden] {
+            display: none !important;
+        }
+
         .customer-name {
             font-weight: 800;
         }
@@ -258,7 +304,7 @@
 
         .status-control {
             min-width: 125px;
-            margin-bottom: 8px;
+            margin: 8px 0;
         }
 
         .status-message {
@@ -282,13 +328,8 @@
             font-weight: 700;
         }
 
-        .whatsapp-link {
-            color: var(--green);
-        }
-
-        .email-link {
-            color: var(--cyan);
-        }
+        .whatsapp-link { color: var(--green); }
+        .email-link { color: var(--cyan); }
 
         .empty-state {
             padding: 36px 16px;
@@ -311,28 +352,22 @@
             line-height: 1.5;
         }
 
-        .notice.visible {
-            display: block;
-        }
-
+        .notice.visible { display: block; }
         .notice.error {
             color: var(--red);
             border-color: rgba(251, 113, 133, 0.4);
         }
-
         .notice.success {
             color: var(--green);
             border-color: rgba(74, 222, 128, 0.4);
         }
 
         @media (max-width: 700px) {
-            body {
-                padding: 20px 12px 32px;
-            }
+            body { padding: 20px 12px 32px; }
 
-            .admin-stats {
+            .admin-stats,
+            .chart-grid {
                 grid-template-columns: 1fr;
-                gap: 10px;
             }
 
             .admin-stat,
@@ -341,29 +376,43 @@
                 border-radius: 15px;
             }
 
-            .toolbar {
-                grid-template-columns: 1fr;
-            }
+            .toolbar { grid-template-columns: 1fr; }
 
-            .admin-heading {
-                align-items: flex-start;
+            .admin-heading { align-items: flex-start; }
+
+            .admin-navigation { width: 100%; }
+
+            .admin-link {
+                flex: 1 1 auto;
             }
         }
     </style>
+
+    <!-- Chart.js powers the dashboard charts. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
     <main class="admin-shell">
+
         <header class="admin-heading">
             <div>
                 <p class="eyebrow">NEXORA BUSINESS SOLUTIONS</p>
                 <h1>Enquiry Dashboard</h1>
                 <p class="subtitle">
-                    Review customer enquiries, manage statuses and contact customers.
+                    Review customer leads, track enquiries and contact customers.
                 </p>
             </div>
 
-            <a class="admin-link" href="/">← Back to chatbot</a>
+            <nav class="admin-navigation" aria-label="Dashboard navigation">
+                <a
+                    class="admin-link"
+                    href="#leadsSection"
+                    style="display:inline-flex!important;visibility:visible!important;opacity:1!important;"
+                >📋 Leads</a>
+
+                <a class="admin-link" href="/">← Back to chatbot</a>
+            </nav>
         </header>
 
         <section class="admin-stats" aria-label="Enquiry statistics">
@@ -389,11 +438,39 @@
             </article>
         </section>
 
-        <section class="admin-panel">
-            <h2>Customer enquiries</h2>
+        <section class="admin-panel" id="chartsSection">
+            <h2>📊 Leads Analytics</h2>
+            <p class="panel-description">
+                View your enquiry status and the services customers request.
+                Charts use the enquiry records currently displayed in this dashboard.
+            </p>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>Enquiries by status</h3>
+                    <div class="chart-container">
+                        <canvas id="statusChart" aria-label="Enquiries by status chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Enquiries by service</h3>
+                    <div class="chart-container">
+                        <canvas id="serviceChart" aria-label="Enquiries by service chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <p id="chartMessage" class="panel-description" hidden>
+                Charts are unavailable because the chart library could not load.
+            </p>
+        </section>
+
+        <section class="admin-panel" id="leadsSection">
+            <h2>Customer Leads &amp; Enquiries</h2>
             <p class="panel-description">
                 Search by customer, email, phone number, service or project details.
-                Status changes are saved to your existing enquiry CSV.
+                Status changes are saved through your existing enquiry API.
             </p>
 
             <div id="notice" class="notice" role="status" aria-live="polite"></div>
@@ -446,21 +523,15 @@
                         >
                             <td>
                                 <div class="customer-name">{{ enquiry.name }}</div>
-                                <div class="contact-details">
-                                    {{ enquiry.email }}
-                                </div>
-                                <div class="contact-details">
-                                    {{ enquiry.phone }}
-                                </div>
+                                <div class="contact-details">{{ enquiry.email }}</div>
+                                <div class="contact-details">{{ enquiry.phone }}</div>
                                 <div class="submitted-date">
                                     {{ enquiry.submitted_at or 'Date not recorded' }}
                                 </div>
                             </td>
 
                             <td>
-                                <span class="service-label">
-                                    {{ enquiry.service }}
-                                </span>
+                                <span class="service-label">{{ enquiry.service }}</span>
                             </td>
 
                             <td>
@@ -469,6 +540,7 @@
 
                             <td>
                                 <label for="status-{{ enquiry.id }}">Status</label>
+
                                 <select
                                     id="status-{{ enquiry.id }}"
                                     class="status-control"
@@ -488,7 +560,12 @@
                                         Approved
                                     </option>
                                 </select>
-                                <div class="status-message" id="message-{{ enquiry.id }}"></div>
+
+                                <div
+                                    class="status-message"
+                                    id="message-{{ enquiry.id }}"
+                                    aria-live="polite"
+                                ></div>
                             </td>
 
                             <td>
@@ -500,7 +577,8 @@
                                     >Email</a>
                                     {% endif %}
 
-                                    {% set whatsapp_number = enquiry.phone|replace('+', '')|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') %}
+                                    {% set whatsapp_number = enquiry.phone|replace('+', '')|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '')|replace('.', '') %}
+
                                     {% if whatsapp_number %}
                                     <a
                                         class="whatsapp-link"
@@ -527,15 +605,20 @@
             </div>
             {% endif %}
         </section>
+
     </main>
 
     <script>
         (() => {
+            "use strict";
+
             const searchInput = document.getElementById("searchInput");
             const filterStatus = document.getElementById("filterStatus");
             const resultCount = document.getElementById("resultCount");
             const noResults = document.getElementById("noResults");
             const notice = document.getElementById("notice");
+            const chartMessage = document.getElementById("chartMessage");
+
             const rows = Array.from(
                 document.querySelectorAll("#enquiriesTable tbody tr")
             );
@@ -553,16 +636,15 @@
                 rows.forEach((row) => {
                     const matchesText =
                         (row.dataset.search || "").includes(query);
+
                     const matchesStatus =
                         !selectedStatus ||
                         row.dataset.status === selectedStatus;
-                    const visible = matchesText && matchesStatus;
 
+                    const visible = matchesText && matchesStatus;
                     row.hidden = !visible;
 
-                    if (visible) {
-                        visibleCount += 1;
-                    }
+                    if (visible) visibleCount += 1;
                 });
 
                 resultCount.textContent =
@@ -577,16 +659,14 @@
             filterStatus.addEventListener("change", filterRows);
 
             document.querySelectorAll(".status-control").forEach((control) => {
+                control.dataset.previousStatus = control.value;
+
                 control.addEventListener("change", async () => {
                     const enquiryId = control.dataset.enquiryId;
                     const message = document.getElementById(
                         `message-${enquiryId}`
                     );
-                    const previousStatus = control.dataset.previousStatus ||
-                        Array.from(control.options).find(
-                            (option) => option.defaultSelected
-                        )?.value ||
-                        "Pending";
+                    const previousStatus = control.dataset.previousStatus;
                     const newStatus = control.value;
 
                     control.disabled = true;
@@ -594,7 +674,7 @@
 
                     try {
                         const response = await fetch(
-                            `/api/enquiry/${enquiryId}/status`,
+                            `/api/enquiry/${encodeURIComponent(enquiryId)}/status`,
                             {
                                 method: "POST",
                                 headers: {
@@ -615,55 +695,75 @@
                         control.dataset.previousStatus = newStatus;
                         control.closest("tr").dataset.status = newStatus;
                         message.textContent = "Saved";
-                        showNotice("Enquiry status updated successfully.", "success");
+                        showNotice(
+                            "Enquiry status updated successfully.",
+                            "success"
+                        );
+
+                        filterRows();
+                        updateCharts();
 
                         window.setTimeout(() => {
                             message.textContent = "";
                         }, 2500);
-
-                        filterRows();
                     } catch (error) {
                         control.value = previousStatus;
                         message.textContent = "Not saved";
-                        showNotice(error.message, "error");
+                        showNotice(
+                            error.message || "Could not update the status.",
+                            "error"
+                        );
                     } finally {
                         control.disabled = false;
                     }
                 });
-
-                control.dataset.previousStatus = control.value;
             });
 
-            filterRows();
-            
-            // Prepare chart data from the enquiries rendered by Flask.
-            const statusCounts = {
-                Pending: 0,
-                Quoted: 0,
-                Approved: 0
-            };
+            let statusChart = null;
+            let serviceChart = null;
 
-            const serviceCounts = {};
+            function collectChartData() {
+                const statusCounts = {
+                    Pending: 0,
+                    Quoted: 0,
+                    Approved: 0
+                };
 
-            rows.forEach((row) => {
-                const status = row.dataset.status || "Pending";
-                statusCounts[status] = (statusCounts[status] || 0) + 1;
+                const serviceCounts = {};
 
-                const serviceCell = row.cells[1];
-                const service = serviceCell
-                    ? serviceCell.textContent.trim()
-                    : "Other";
+                rows.forEach((row) => {
+                    const status = row.dataset.status || "Pending";
+                    statusCounts[status] = (statusCounts[status] || 0) + 1;
 
-                if (service) {
-                    serviceCounts[service] =
-                        (serviceCounts[service] || 0) + 1;
+                    const serviceCell = row.cells[1];
+                    const service = serviceCell
+                        ? serviceCell.textContent.trim()
+                        : "Other";
+
+                    if (service) {
+                        serviceCounts[service] =
+                            (serviceCounts[service] || 0) + 1;
+                    }
+                });
+
+                return { statusCounts, serviceCounts };
+            }
+
+            function updateCharts() {
+                if (typeof Chart === "undefined") {
+                    chartMessage.hidden = false;
+                    return;
                 }
-            });
 
-            if (typeof Chart !== "undefined") {
-                new Chart(document.getElementById("statusChart"), {
-                    type: "doughnut",
-                    data: {
+                chartMessage.hidden = true;
+
+                const { statusCounts, serviceCounts } = collectChartData();
+
+                const statusCanvas = document.getElementById("statusChart");
+                const serviceCanvas = document.getElementById("serviceChart");
+
+                if (statusCanvas) {
+                    const statusData = {
                         labels: Object.keys(statusCounts),
                         datasets: [{
                             data: Object.values(statusCounts),
@@ -675,22 +775,31 @@
                             borderColor: "#080d1b",
                             borderWidth: 3
                         }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: "bottom",
-                                labels: { color: "#edf4ff" }
-                            }
-                        }
-                    }
-                });
+                    };
 
-                new Chart(document.getElementById("serviceChart"), {
-                    type: "bar",
-                    data: {
+                    if (statusChart) {
+                        statusChart.data = statusData;
+                        statusChart.update();
+                    } else {
+                        statusChart = new Chart(statusCanvas, {
+                            type: "doughnut",
+                            data: statusData,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: "bottom",
+                                        labels: { color: "#edf4ff" }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                if (serviceCanvas) {
+                    const serviceData = {
                         labels: Object.keys(serviceCounts),
                         datasets: [{
                             label: "Enquiries",
@@ -698,34 +807,47 @@
                             backgroundColor: "#56e5ff",
                             borderRadius: 6
                         }]
-                    },
-                    options: {
-                        indexAxis: "y",
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                beginAtZero: true,
-                                ticks: {
-                                    color: "#a6b4ce",
-                                    precision: 0
+                    };
+
+                    if (serviceChart) {
+                        serviceChart.data = serviceData;
+                        serviceChart.update();
+                    } else {
+                        serviceChart = new Chart(serviceCanvas, {
+                            type: "bar",
+                            data: serviceData,
+                            options: {
+                                indexAxis: "y",
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            color: "#a6b4ce",
+                                            precision: 0
+                                        },
+                                        grid: {
+                                            color: "rgba(148,163,184,0.15)"
+                                        }
+                                    },
+                                    y: {
+                                        ticks: { color: "#edf4ff" },
+                                        grid: { display: false }
+                                    }
                                 },
-                                grid: { color: "rgba(148,163,184,0.15)" }
-                            },
-                            y: {
-                                ticks: { color: "#edf4ff" },
-                                grid: { display: false }
+                                plugins: {
+                                    legend: { display: false }
+                                }
                             }
-                        },
-                        plugins: {
-                            legend: { display: false }
-                        }
+                        });
                     }
-                });
+                }
             }
 
+            filterRows();
+            updateCharts();
         })();
     </script>
 </body>
 </html>
-
