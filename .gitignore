@@ -18,3 +18,6 @@ customer_enquiries*.csv
 
 # Keep local backups out of Git
 *.step5-backup
+# Private uploaded files and lead backups
+uploads/
+leads-backup-*/

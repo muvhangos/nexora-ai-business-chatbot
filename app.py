@@ -1,4 +1,6 @@
 import csv
+import json
+import uuid
 import os
 import re
 from datetime import datetime, timedelta, timezone
@@ -18,6 +20,8 @@ from flask import (
 )
 from openai import OpenAI
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
 
 load_dotenv()
 
@@ -27,6 +31,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY") or os.urandom(32).hex()
 
 app.config.update(
+    MAX_CONTENT_LENGTH=20 * 1024 * 1024,
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=bool(os.getenv("RENDER_SERVICE_ID")),
@@ -50,6 +55,7 @@ ENQUIRY_FIELDS = [
     "service",
     "details",
     "status",
+    "attachments",
 ]
 
 ALLOWED_SERVICES = {
@@ -62,6 +68,10 @@ ALLOWED_SERVICES = {
 }
 
 ALLOWED_STATUSES = {"Pending", "Quoted", "Approved"}
+ALLOWED_ATTACHMENT_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".docx"}
+MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024
+MAX_ATTACHMENT_COUNT = 5
+ENQUIRY_UPLOAD_FOLDER = Path(__file__).resolve().parent / "uploads" / "enquiries"
 
 BUSINESS_INFO = """
 Business name: Nexora Business Solutions
@@ -405,77 +415,95 @@ def chat():
         }), 500
 
 
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_request_too_large(error):
+    return jsonify({
+        "error": "The total upload must be 20 MB or smaller."
+    }), 413
+
+
 @app.route("/api/enquiry", methods=["POST"])
 def submit_enquiry():
-    """Validate and save a customer enquiry or quotation request."""
-    data = request.get_json(silent=True)
-
-    if not isinstance(data, dict):
-        return jsonify({
-            "error": "Please submit the enquiry form correctly."
-        }), 400
+    """Validate and save an enquiry submitted as JSON or FormData."""
+    if request.is_json:
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"error": "Please submit the enquiry form correctly."}), 400
+    else:
+        data = request.form
 
     fields = {}
-
     for field in ("name", "email", "phone", "service", "details"):
         value = data.get(field, "")
-
         if not isinstance(value, str):
-            return jsonify({
-                "error": f"The {field} field must be text."
-            }), 400
-
+            return jsonify({"error": f"The {field} field must be text."}), 400
         fields[field] = value.strip()
 
-    name = fields["name"]
-    email = fields["email"]
-    phone = fields["phone"]
-    service = fields["service"]
-    details = fields["details"]
+    name, email, phone = fields["name"], fields["email"], fields["phone"]
+    service, details = fields["service"], fields["details"]
 
     if not name or not email or not service or not details:
-        return jsonify({
-            "error": "Please complete all required fields."
-        }), 400
-
+        return jsonify({"error": "Please complete all required fields."}), 400
     if len(name) > 100:
-        return jsonify({
-            "error": "Name must be 100 characters or fewer."
-        }), 400
-
-    if len(email) > 254 or not re.fullmatch(
-        r"[^@\s]+@[^@\s]+\.[^@\s]+", email
-    ):
-        return jsonify({
-            "error": "Please enter a valid email address."
-        }), 400
-
+        return jsonify({"error": "Name must be 100 characters or fewer."}), 400
+    if len(email) > 254 or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        return jsonify({"error": "Please enter a valid email address."}), 400
     if len(phone) > 30:
-        return jsonify({
-            "error": "Phone number must be 30 characters or fewer."
-        }), 400
-
+        return jsonify({"error": "Phone number must be 30 characters or fewer."}), 400
     if service not in ALLOWED_SERVICES:
-        return jsonify({
-            "error": "Please choose a valid service."
-        }), 400
-
+        return jsonify({"error": "Please choose a valid service."}), 400
     if len(details) > 3000:
-        return jsonify({
-            "error": "Project details must be 3000 characters or fewer."
-        }), 400
+        return jsonify({"error": "Project details must be 3000 characters or fewer."}), 400
+
+    files = [
+        item for item in request.files.getlist("attachments")
+        if item and item.filename and item.filename.strip()
+    ]
+    if len(files) > MAX_ATTACHMENT_COUNT:
+        return jsonify({"error": "You can attach a maximum of 5 files."}), 400
+
+    validated = []
+    for item in files:
+        safe_original = secure_filename(item.filename)
+        extension = Path(safe_original).suffix.lower()
+        if not safe_original or extension not in ALLOWED_ATTACHMENT_EXTENSIONS:
+            return jsonify({
+                "error": "Choose PDF, JPG, JPEG, PNG or DOCX files only."
+            }), 400
+
+        item.stream.seek(0, 2)
+        size = item.stream.tell()
+        item.stream.seek(0)
+        if size > MAX_ATTACHMENT_BYTES:
+            return jsonify({
+                "error": f"{safe_original} exceeds the 5 MB per-file limit."
+            }), 400
+        validated.append((item, safe_original, extension, size))
+
+    saved_paths = []
+    attachment_records = []
 
     try:
-        # Upgrade the existing CSV before adding a new row.
         ensure_enquiries_schema()
 
-        with ENQUIRIES_FILE.open(
-            "a", newline="", encoding="utf-8"
-        ) as csv_file:
+        if validated:
+            ENQUIRY_UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+
+        for item, original_name, extension, size in validated:
+            stored_name = uuid.uuid4().hex + extension
+            destination = ENQUIRY_UPLOAD_FOLDER / stored_name
+            item.save(destination)
+            saved_paths.append(destination)
+            attachment_records.append({
+                "original_name": original_name,
+                "stored_name": stored_name,
+                "size_bytes": size,
+            })
+
+        with ENQUIRIES_FILE.open("a", newline="", encoding="utf-8") as csv_file:
             writer = csv.DictWriter(
-                csv_file,
-                fieldnames=ENQUIRY_FIELDS,
-                extrasaction="ignore",
+                csv_file, fieldnames=ENQUIRY_FIELDS, extrasaction="ignore"
             )
             writer.writerow({
                 "submitted_at": datetime.now(timezone.utc).isoformat(),
@@ -485,26 +513,27 @@ def submit_enquiry():
                 "service": service,
                 "details": details,
                 "status": "Pending",
+                "attachments": json.dumps(attachment_records, ensure_ascii=False),
             })
 
     except (OSError, csv.Error):
+        for saved_path in saved_paths:
+            try:
+                saved_path.unlink(missing_ok=True)
+            except OSError:
+                app.logger.exception("Could not clean up an uploaded file")
         app.logger.exception("Could not save customer enquiry")
         return jsonify({
-            "error": (
-                "We could not save your enquiry right now. "
-                "Please try again later."
-            )
+            "error": "We could not save your enquiry right now. Please try again later."
         }), 500
 
     app.logger.info("A customer enquiry was saved successfully.")
-
     return jsonify({
         "message": (
             "Thank you! Your enquiry has been received. "
             "Your quotation request is awaiting review."
         )
     }), 201
-
 
 @app.route(
     "/api/enquiry/<int:enquiry_id>/status",
