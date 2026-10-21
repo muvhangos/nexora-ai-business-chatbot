@@ -386,7 +386,18 @@
                 flex: 1 1 auto;
             }
         }
-    </style>
+
+        .attachment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 120px;
+        }
+        .attachment-link {
+            overflow-wrap: anywhere;
+            font-weight: 600;
+        }
+</style>
 
     <!-- Chart.js powers the dashboard charts. -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -503,6 +514,7 @@
                             <th>Customer</th>
                             <th>Service</th>
                             <th>Project details</th>
+                            <th>Attachments</th>
                             <th>Status</th>
                             <th>Contact</th>
                         </tr>
@@ -517,7 +529,8 @@
                                 enquiry.phone ~ ' ' ~
                                 enquiry.service ~ ' ' ~
                                 enquiry.details ~ ' ' ~
-                                enquiry.submitted_at
+                                enquiry.submitted_at ~ ' ' ~
+                                (enquiry.attachments | map(attribute='original_name') | join(' '))
                             )|lower }}"
                             data-status="{{ enquiry.status }}"
                         >
@@ -536,6 +549,26 @@
 
                             <td>
                                 <div class="details-text">{{ enquiry.details }}</div>
+                            </td>
+
+                            <td>
+                                {% if enquiry.attachments %}
+                                    <div class="attachment-list">
+                                    {% for attachment in enquiry.attachments %}
+                                        <a
+                                            class="attachment-link"
+                                            href="{{ url_for('download_enquiry_attachment', enquiry_id=enquiry.id, stored_name=attachment.stored_name) }}"
+                                        >{{ attachment.original_name }}</a>
+                                        <div class="contact-details">
+                                            {% if attachment.size_bytes %}
+                                                {{ (attachment.size_bytes / 1024)|round(1) }} KB
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span class="contact-details">No files</span>
+                                {% endif %}
                             </td>
 
                             <td>

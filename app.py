@@ -323,6 +323,40 @@ def admin_logout():
     return redirect(url_for("admin_login"))
 
 
+def parse_attachment_records(raw_value):
+    """Parse stored attachment metadata safely for the admin dashboard."""
+    if not raw_value:
+        return []
+
+    try:
+        records = json.loads(raw_value)
+    except (json.JSONDecodeError, TypeError):
+        return []
+
+    if not isinstance(records, list):
+        return []
+
+    safe_records = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        original_name = record.get("original_name")
+        stored_name = record.get("stored_name")
+        if not isinstance(original_name, str) or not isinstance(stored_name, str):
+            continue
+        # Stored names are generated UUIDs with an allowed extension.
+        if secure_filename(stored_name) != stored_name:
+            continue
+        if Path(stored_name).suffix.lower() not in ALLOWED_ATTACHMENT_EXTENSIONS:
+            continue
+        safe_records.append({
+            "original_name": original_name,
+            "stored_name": stored_name,
+            "size_bytes": record.get("size_bytes", 0),
+        })
+    return safe_records
+
+
 @app.route("/admin")
 @admin_required
 def admin_dashboard():
@@ -348,6 +382,9 @@ def admin_dashboard():
                         "details": row.get("details", ""),
                         "status": (
                             row.get("status", "").strip() or "Pending"
+                        ),
+                        "attachments": parse_attachment_records(
+                            row.get("attachments", "")
                         ),
                     })
 
@@ -534,6 +571,54 @@ def submit_enquiry():
             "Your quotation request is awaiting review."
         )
     }), 201
+
+@app.route("/admin/enquiry/<int:enquiry_id>/attachment/<path:stored_name>")
+@admin_required
+def download_enquiry_attachment(enquiry_id, stored_name):
+    """Serve an attachment only when it belongs to a saved enquiry."""
+    if not ENQUIRIES_FILE.exists():
+        abort(404)
+
+    try:
+        with ENQUIRIES_FILE.open("r", newline="", encoding="utf-8") as csv_file:
+            rows = list(csv.DictReader(csv_file))
+    except (OSError, csv.Error):
+        app.logger.exception("Could not read enquiries for attachment download")
+        abort(500)
+
+    if enquiry_id < 0 or enquiry_id >= len(rows):
+        abort(404)
+
+    attachment_records = parse_attachment_records(
+        rows[enquiry_id].get("attachments", "")
+    )
+    permitted = any(
+        item["stored_name"] == stored_name for item in attachment_records
+    )
+    if not permitted:
+        abort(404)
+
+    safe_name = secure_filename(stored_name)
+    file_path = (ENQUIRY_UPLOAD_FOLDER / safe_name).resolve()
+    upload_root = ENQUIRY_UPLOAD_FOLDER.resolve()
+    if file_path.parent != upload_root or not file_path.is_file():
+        abort(404)
+
+    original_name = next(
+        item["original_name"]
+        for item in attachment_records
+        if item["stored_name"] == stored_name
+    )
+    from flask import send_from_directory
+    response = send_from_directory(
+        str(upload_root),
+        safe_name,
+        as_attachment=True,
+        download_name=original_name,
+    )
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
 
 @app.route(
     "/api/enquiry/<int:enquiry_id>/status",
