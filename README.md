@@ -1,39 +1,52 @@
 # Nexora AI Business Chatbot
 
-A responsive AI-powered business assistant built with Python, Flask, OpenAI, HTML, CSS, and JavaScript.
+A responsive AI-powered business assistant built with **Python, Flask, OpenAI, HTML, CSS, and JavaScript**.
 
-Nexora helps businesses answer customer questions, provide service information, and manage customer enquiries through a web-based chatbot and a protected administration dashboard.
+**Live demo:** https://nexora-ai-business-chatbot.onrender.com  
+**GitHub repository:** https://github.com/muvhangos/nexora-ai-business-chatbot
+
+Nexora helps customers learn about business services, ask questions, and submit quotation enquiries through a public chatbot. The application also includes a password-protected administration area for reviewing enquiries and updating their status.
 
 ## Features
 
-* Responsive chatbot interface with a dark, glowing design.
-* OpenAI-powered responses using business-specific context.
-* Demo responses when an OpenAI API key is not configured.
-* Suggested questions and chat controls.
-* Customer enquiry submission and CSV storage.
-* Protected admin login using password hashing.
-* Admin dashboard for viewing enquiries and updating their status.
-* Email and WhatsApp contact links.
-* Environment-based configuration for sensitive settings.
+- Responsive chatbot interface designed for desktop and mobile.
+- OpenAI-powered answers using business-specific context.
+- Demo/fallback responses when the AI service is unavailable or not configured.
+- Suggested questions and chat controls.
+- Customer enquiry and quotation-request form.
+- Enquiry records with status management, including **Pending**, **Quoted**, and **Approved**.
+- Admin login and protected dashboard for reviewing enquiries.
+- Support for enquiry attachment information where enabled by the application.
+- Email and WhatsApp contact links where configured.
+- Environment-variable configuration for private settings.
 
-## Technology Stack
+> **Important:** AI responses depend on a valid OpenAI API key, available API quota, and correct service configuration. A fallback/demo response does not necessarily mean the live AI API is available.
 
-* Python
-* Flask
-* OpenAI API
-* HTML, CSS, and JavaScript
-* CSV-based enquiry storage
-* Gunicorn for production hosting
+## Technology stack
 
-## Requirements
+- **Backend:** Python, Flask
+- **AI integration:** OpenAI API
+- **Frontend:** HTML, CSS, JavaScript
+- **Enquiry storage:** CSV-based storage in the current implementation
+- **Production server:** Gunicorn
+- **Hosting:** Render
 
-* Python 3.10 or newer
-* Git
-* An OpenAI API key for AI-powered responses (optional if using demo responses)
+## Try the live application
 
-## Run Locally on Windows
+1. Open the [Nexora chatbot](https://nexora-ai-business-chatbot.onrender.com).
+2. Ask a question or submit a test quotation enquiry.
+3. Sign in to the admin area using the administrator credentials configured for the deployment.
+4. Review the enquiry and test its status-update workflow.
 
-Open PowerShell and navigate to the project directory:
+The admin route is:
+
+`https://nexora-ai-business-chatbot.onrender.com/admin`
+
+Keep the admin route and credentials private. Never publish administrator passwords or API keys in this README.
+
+## Run locally on Windows
+
+Open PowerShell and navigate to your project folder:
 
 ```powershell
 cd "$HOME\Downloads\ai-business-chatbot\ai-business-chatbot"
@@ -52,13 +65,13 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Create your local environment file if it does not exist:
+If `.env` does not already exist, create it from the example file:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Do not overwrite an existing `.env` file containing your working configuration.
+**If you already have a working `.env`, do not overwrite it.**
 
 Open the project in VS Code:
 
@@ -66,78 +79,78 @@ Open the project in VS Code:
 code .
 ```
 
-## Environment Configuration
+## Environment configuration
 
-Configure these variables in your private `.env` file:
+Configure the following variables in your private `.env` file, using values appropriate for your environment:
 
 ```dotenv
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4.1-mini
-SECRET_KEY=your_secure_flask_secret
+SECRET_KEY=your_long_random_secret
 ADMIN_USERNAME=your_admin_username
 ADMIN_PASSWORD_HASH=your_generated_password_hash
 ```
 
-Replace the example values with your own configuration. The admin password hash must be generated using Werkzeug's `generate_password_hash()` function.
+The administrator password hash should be generated with Werkzeug's `generate_password_hash()` function. Use a strong, unique `SECRET_KEY`.
 
-Keep `.env` private. Never commit real API keys, secret keys, passwords, password hashes, or customer records to GitHub.
+Never commit `.env`, API keys, passwords, secret keys, password hashes, or real customer enquiry records to GitHub.
 
-## Start the Application
+## Start the local application
 
-Activate the virtual environment and run:
+With the virtual environment activated, run:
 
 ```powershell
 python app.py
 ```
 
-Open the chatbot:
+Open the customer interface:
 
-http://127.0.0.1:5000
+`http://127.0.0.1:5000`
 
 Open the admin dashboard:
 
-http://127.0.0.1:5000/admin
+`http://127.0.0.1:5000/admin`
 
-The admin dashboard should require authentication before allowing access to customer enquiries.
-
-## Customize Business Information
-
-Edit the business information and chatbot instructions in `app.py` to match the actual business, including its services, pricing, opening hours, and policies.
-
-Verify all business details before making the chatbot publicly available.
+The dashboard should require administrator authentication before showing customer enquiries.
 
 ## Deploy to Render
 
-1. Push the project to GitHub.
+This repository is configured for deployment through Render's service settings.
 
-2. Create a new Web Service in Render and connect the repository.
+Typical commands:
 
-3. Set the build command to:
+**Build command**
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+pip install -r requirements.txt
+```
 
-4. Set the start command to:
+**Start command**
 
-   ```bash
-   gunicorn app:app
-   ```
+```bash
+gunicorn app:app
+```
 
-5. Configure the required environment variables in Render: `SECRET_KEY`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD_HASH`. Add `OPENAI_API_KEY` if AI responses are required, and set `OPENAI_MODEL` to the desired model.
+Set the required environment variables in the Render service's **Environment** settings:
 
-6. Deploy and test the public chatbot and admin login over HTTPS.
+- `SECRET_KEY`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD_HASH`
+- `OPENAI_API_KEY` (needed for OpenAI-powered replies)
+- `OPENAI_MODEL` (for example, `gpt-4.1-mini`)
 
-Use a strong, stable `SECRET_KEY` for production. Never enable Flask debug mode in production.
+After deployment, test the public chatbot, enquiry submission, admin login, status updates, and logout. The Render service may be configured for manual deployment, so a GitHub commit does not necessarily deploy automatically; check the service's Auto-Deploy setting and deployment status.
 
-### Important Production Considerations
+## Important production and data-storage notes
 
-* The current CSV-based enquiry storage may be lost when a hosting service replaces its temporary filesystem. Use a persistent disk or a production database for reliable customer records.
-* Protect customer information and establish appropriate privacy, retention, and access-control policies.
-* Consider rate limiting, monitoring, and OpenAI usage limits before public launch.
-* Test login, enquiry submission, status updates, and logout after deployment.
+- The current application uses CSV-based enquiry storage. A CSV file stored on a hosting service's temporary filesystem may be lost or replaced during restarts, redeployments, or instance replacement.
+- **Do not assume that CSV storage is durable or shared across instances.** For reliable production lead management, migrate enquiry records to a persistent database such as PostgreSQL, or configure and verify an appropriate persistent disk.
+- Test with a clearly identified test enquiry before relying on the dashboard for real customer leads.
+- Protect customer contact details and attachments. Limit administrator access and establish suitable privacy, retention, and deletion practices.
+- Keep Flask debug mode disabled in production.
+- Monitor OpenAI API usage, quota, errors, and rate limits.
 
-## Project Structure
+## Project structure
 
 ```text
 ai-business-chatbot/
@@ -155,13 +168,20 @@ ai-business-chatbot/
     └── admin_login.html
 ```
 
-## Security
+## Security checklist
 
-* `.env` is excluded from Git.
-* Customer enquiry CSV files are excluded from Git.
-* Admin passwords are stored as hashes rather than plaintext.
-* Production deployments should use HTTPS and secure environment variables.
+- Keep `.env` out of version control.
+- Keep real customer records and uploaded files out of GitHub.
+- Store administrator passwords as hashes, not plaintext.
+- Use HTTPS and secure environment variables in production.
+- Restrict the admin dashboard to authorized users.
+- Verify storage persistence before using the application for business-critical leads.
 
-## Project
+## Author
 
-**Nexora AI Business Chatbot** — a Python and Flask business assistant with AI integration and enquiry management.
+**Samuel Muvhango**  
+Full-Stack Web Developer | IT & Systems Engineer
+
+---
+
+Built as a practical full-stack project combining a customer-facing AI assistant with business enquiry management.
